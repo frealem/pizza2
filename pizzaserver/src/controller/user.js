@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
       const role = validatedData.role || 'customer'; 
       const action=validatedData.action || false;
       const hashedPassword = await hashPassword(validatedData.password);
-      const user = await createUser(validatedData.email, hashedPassword, role,validatedData.phone,action);
+      const user = await createUser(validatedData.email, hashedPassword, role,validatedData.phone,validatedData.location,action);
       res.status(201).json({ user });
       console.log('successful registeration')
 
