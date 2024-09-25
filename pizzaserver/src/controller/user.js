@@ -1,7 +1,7 @@
 const bcrypt=require('bcrypt');
 const jwt=require('jsonwebtoken');
 const userSchema=require('../schema/userschema');
-const {createUser,findUserByEmail}=require('../models/usermodel')
+const {createUser,findUserByEmail, getAllUsers, updateUsers, deleteUsers}=require('../models/usermodel')
 
 const hashPassword = async (password) => {
   const salt = await bcrypt.genSalt(10);
@@ -46,4 +46,40 @@ const registerUser = async (req, res) => {
     }
   };
 
-module.exports= {registerUser,loginUser};
+  const getAllUser= async (req, res) => {
+    try {
+        const users = await getAllUsers()
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching users' });
+    }
+}
+const updateUser=async (req, res) => {
+  const { id } = req.params;
+  const userData = req.body;
+
+  try {
+      const updatedUser = await updateUsers(id, userData);
+      if (!updatedUser) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      res.json(updatedUser);
+  } catch (error) {
+      res.status(500).json({ message: 'Error updating user', error });
+  }
+}
+const deleteUser=async (req, res) => {
+  const { id } = req.params;
+
+    try {
+        const deletedUser = await deleteUsers(id);
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting user', error });
+    }
+}
+
+module.exports= {registerUser,loginUser,getAllUser,updateUser,deleteUser};
