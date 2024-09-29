@@ -1,6 +1,11 @@
 const jwt=require('jsonwebtoken')
-const { defineAbilitiesFor }=require('./caslMiddleware')
 
+
+const permissions = {
+    superadmin: ['create', 'read', 'update', 'delete'],
+    customer: ['create', 'read', 'update', 'delete'],
+    manager: ['read', 'update','create','delete'],
+};
 
 const authMiddleware = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -14,11 +19,11 @@ const authMiddleware = (req, res, next) => {
 };
 
 // Authorization middleware
-const authorize = (action, subject) => {
+const authorize = (action) => {
     return (req, res, next) => {
-        const abilities = defineAbilitiesFor(req.user.role); // Define abilities based on user role
+        const userRole = req.user.role; 
 
-        if (!abilities.can(action, subject)) {
+        if (!permissions[userRole] || !permissions[userRole].includes(action)) {
             return res.status(403).json({ message: 'Forbidden' });
         }
         next();

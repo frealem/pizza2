@@ -5,8 +5,6 @@ const foodSchema=z.object({
     topping:z.string(),
     price:z.string(),
     image:z.string(),
-    created_at:z.string(),
-    created_by:z.string(),
 })
 
 module.exports=foodSchema

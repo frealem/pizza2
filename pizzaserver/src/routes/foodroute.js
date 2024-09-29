@@ -1,17 +1,14 @@
-import express from 'express';
-import { authMiddleware, authorize } from '../middlewares/authMiddleware';
+const {authMiddleware,authorize}=require('../middleware/middleware')
+const {CreateFood, GetAllFood, GetFood, UpdateFood, DeleteFood}=require('../controller/food')
+const express=require('express')
 
 const router = express.Router();
 
-// Protected route example
-router.get('/orders', authMiddleware, authorize('view', 'Order'), (req, res) => {
-    // Logic to fetch orders from the database
-    res.json({ message: 'Orders fetched successfully', user: req.user });
-});
+// food create route
 
-router.post('/orders', authMiddleware, authorize('manage', 'Order'), (req, res) => {
-    // Logic to create an order
-    res.json({ message: 'Order created successfully' });
-});
-
-export default router;
+router.post('/', authMiddleware, authorize('create'),CreateFood);
+router.get('/', authMiddleware, authorize('read'),GetAllFood);
+router.get('/:id', authMiddleware, authorize('read'),GetFood);
+router.put('/:id', authMiddleware, authorize('update'),UpdateFood);
+router.delete('/:id', authMiddleware, authorize('delete'),DeleteFood);
+module.exports=router;
