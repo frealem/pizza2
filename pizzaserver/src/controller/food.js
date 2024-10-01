@@ -1,19 +1,56 @@
+const cloudinary = require("../libs/cloudinaryConfig");
 const db = require("../libs/db");
 
 // create foods
-const CreateFood= async (req, res) => {
-    const { name, topping,image,price } = req.body;
-    const created_by=req.user.id;
+ // Adjust path as needed
+
+ const CreateFood = async (req, res) => {
+    const { name, topping, price } = req.body; // topping will be a JSON string
+    const created_by = req.user.id;
+
     try {
-        console.log('createdby is:',created_by)
-        const result = await db.query('INSERT INTO foods (name,topping,image,price,created_by) VALUES ($1, $2,$3, $4,$5) RETURNING *', [name,topping,image,price,created_by]);
+        // Check if images were uploaded
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ error: 'At least one image is required.' });
+        }
+
+        // Array to hold image URLs
+        const imageUrls = [];
+
+        // Create an array of promises for uploading images
+        const uploadPromises = req.files.map(file => {
+            return new Promise((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream({
+                    folder: 'images' // Optional
+                }, (error, result) => {
+                    if (error) {
+                        console.error(error);
+                        return reject(error); // Reject the promise on error
+                    }
+                    imageUrls.push(result.secure_url); // Push the secure URL to the array
+                    resolve(); // Resolve the promise
+                });
+
+                // Create a stream to upload the image
+                uploadStream.end(file.buffer); // Use buffer for in-memory files
+            });
+        });
+
+        // Wait for all uploads to complete
+        await Promise.all(uploadPromises);
+
+        // Insert food data into the database
+        const result = await db.query(
+            'INSERT INTO foods (name, topping, image, price, created_by) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [name, JSON.parse(topping), JSON.stringify(imageUrls), price, created_by] // Store toppings as a JSON array
+        );
+
         res.status(200).json(result.rows[0]);
-       
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
-     catch (error) {
-        res.status(500).json({ error: error.message })
-        console.log(error)
-    }}
+};
 
     // get one foods
 const GetFood= async (req, res) => {
