@@ -1,20 +1,25 @@
 const db = require("../libs/db");
 
 // create order
-const CreateOrder= async (req, res) => {
-    const {food_id,status,quantity,total_price} = req.body;
-    const customer_id=req.user.id;
+const CreateOrder = async (req, res) => {
+    const { foodId, quantity, price} = req.body; // Remove status from destructuring
+    const customer_id = req.user.id;
     
+    // Set the default status to "preparing"
+    const status = ["preparing"]; 
+
     try {
-        console.log('customer is:',customer_id)
-        const result = await db.query('INSERT INTO orders (customer_id,food_id,status,quantity,total_price) VALUES ($1, $2,$3, $4,$5) RETURNING *', [customer_id,food_id,status,quantity,total_price]);
+        console.log('customer is:', customer_id);
+        const result = await db.query(
+            'INSERT INTO orders (customer_id, food_id, status, quantity, total_price) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [customer_id, foodId, status, quantity, price]
+        );
         res.status(200).json(result.rows[0]);
-       
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+        console.log(error);
     }
-     catch (error) {
-        res.status(500).json({ error: error.message })
-        console.log(error)
-    }}
+};
 
     // get one orders
 

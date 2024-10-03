@@ -53,29 +53,50 @@ const db = require("../libs/db");
 };
 
     // get one foods
-const GetFood= async (req, res) => {
+const GetFood = async (req, res) => {
     const { id } = req.params;
+
     try {
         const result = await db.query('SELECT * FROM foods WHERE id = $1', [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Food item not found' });
+        }
+
         res.status(200).json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        console.error(error);
+        res.status(500).json({ error: error.message });
     }
-   
-}
+};
 
-const GetAllFood=async (req, res) => {
-    const { sortBy, createdBy } = req.query;
+const GetPopularFood =  async (req, res) => {
+    const { createdBy } = req.query;
 
     try {
-        const orderBy = sortBy ? `ORDER BY created_at ${sortBy}` : '';
-        const filterBy = createdBy ? `WHERE created_by = '${createdBy}'` : '';
-        const result = await db.query(`SELECT * FROM foods ${filterBy} ${orderBy}`);
-        res.status(200).json(result.rows); 
+        let query = 'SELECT * FROM foods';
+        const conditions = [];
+        
+        // Add filtering conditions
+        if (createdBy) {
+            conditions.push(`created_by = $1`);
+        }
+
+        // Construct the WHERE clause if there are conditions
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        // Add sorting by price descending
+        query += ' ORDER BY price DESC';
+
+        const result = await db.query(query, createdBy ? [createdBy] : []);
+        res.status(200).json(result.rows);
     } catch (error) {
-      res.status(500).json({ error: error.message })
-    } 
-}
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
 
 const UpdateFood=async (req, res) => {
     const { id } = req.params;
@@ -108,4 +129,4 @@ const DeleteFood=async (req, res) => {
     
    
 
-module.exports={CreateFood,GetFood,GetAllFood,UpdateFood,DeleteFood}
+module.exports={CreateFood,GetFood,GetPopularFood,UpdateFood,DeleteFood}

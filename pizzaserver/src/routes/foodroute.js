@@ -1,5 +1,5 @@
 const { authMiddleware, authorize } = require('../middleware/middleware');
-const { CreateFood, GetAllFood, GetFood, UpdateFood, DeleteFood } = require('../controller/food');
+const { CreateFood,GetFood, UpdateFood, DeleteFood, GetPopularFood } = require('../controller/food');
 const express = require('express');
 const multer = require('multer');
 
@@ -9,8 +9,8 @@ const upload = multer({ storage });
 
 // Define routes
 router.post('/', authMiddleware, upload.array('images'), CreateFood);
-router.get('/', authMiddleware, authorize('read'), GetAllFood);
-router.get('/:id', authMiddleware, authorize('read'), GetFood);
+router.get('/', authMiddleware,GetPopularFood);
+router.get('/:id', authMiddleware, GetFood);
 router.put('/:id', authMiddleware, authorize('update'), UpdateFood);
 router.delete('/:id', authMiddleware, authorize('delete'), DeleteFood);
 
